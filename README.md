@@ -1,5 +1,8 @@
 Planb Bitcoin ATM
+=============
+
 *note*
+-----
 This was cash2BTC's original project. This has been abandoned and was never finished. It is not complete. It’s powered by pubnub. It has a local python script powering the bill acceptor. This has been shown to be very reliable. It publishes bill acceptor data to pubnub via the local raspberry pi. As well as a python webcam script that scans for address’s 24/7.
 
 
