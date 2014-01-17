@@ -12,7 +12,7 @@ A live web page is hosted remotely on a server and a set of scripts powers the b
 These legacy pages are still active and visible on cash2btc.com/atm/BETA00016.php
  Server.php is a script with the primary server functions and is set up on blockchain.info’s simple API
 This php script is meant to run server side (OUTSIDE of apache.) For long term use I recommend mitigating it to python. I did some work on this but managed to lose the files. Running a php script continually on a loop like this was designed for was not very reliable. 
-This is mainly a proof of concept and there are little thousands of different ways to run and power a bitcoin dispenser. 
+This is mainly a proof of concept and there are thousands of different ways to run and power a bitcoin dispenser. 
 
 
 Pyramid-Acceptors-Rpi-Python-Driver
