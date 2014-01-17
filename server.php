@@ -234,7 +234,7 @@ $nrecipt = curl_exec($c);
 $query = "INSERT INTO btcout SET usd = ?"; $stmt = $con->prepare($query); $stmt->bindParam(1, $sestotal);$stmt->execute();
 
 
-/*
+
 //publish
 echo "     ***   Payment SENT ".$nrecipt."   ***     "; 
 $arr = array("paid"=>"$sestotal");
@@ -250,7 +250,7 @@ $info = $pubnub->publish(array(
     'message' => $arr   ## REQUIRED Message String/Array
 ));
 
-*/
+
 
 
 
