@@ -1,4 +1,16 @@
 Planb Bitcoin ATM
+*note*
+This was cash2BTC's original project. This has been abandoned and was never finished. It is not complete. It’s powered by pubnub. It has a local python script powering the bill acceptor. This has been shown to be very reliable. It publishes bill acceptor data to pubnub via the local raspberry pi. As well as a python webcam script that scans for address’s 24/7.
+
+
+A live web page is hosted remotely on a server and a set of scripts powers the bitcoin functionality. This live page is included and powered by javascript. When creating this I envisioned a chat room like feel of the page that people can interact with customers, post twitter feed’s for prices, and even publish public bitcoin addresses so people can tip/interact with first time bitcoin purchasers.
+
+
+These legacy pages are still active and visible on cash2btc.com/atm/BETA00016.php
+ Server.php is a script with the primary server functions and is set up on blockchain.info’s simple API
+This php script is meant to run server side (OUTSIDE of apache.) For long term use I recommend mitigating it to python. I did some work on this but managed to lose the files. Running a php script continually on a loop like this was designed for was not very reliable. 
+This is mainly a proof of concept and there are little thousands of different ways to run and power a bitcoin dispenser. 
+
 
 Pyramid-Acceptors-Rpi-Python-Driver
 ===================================
