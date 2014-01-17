@@ -1,0 +1,153 @@
+#!/usr/bin/env python
+#gen1 9/5 *received BitHighlander
+
+
+"""   
+-    This program is free software: you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation, either version 3 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-""" 
+
+
+from Pubnub import *
+import os
+#import MySQLdb
+import sys
+import json
+import decimal
+from subprocess import Popen, PIPE
+import sys, thread, time, shlex, math, re
+from Crypto.Hash import SHA256
+import serial, time, binascii
+
+pubnub = Pubnub( 'pub-c-9a952874-0857-4976-8fd6-be2c969dc5bc', 'sub-c-ecc13c7c-48d9-11e3-b088-02ee2ddab7fe', 'sec-c-YjA0OGVmNmEtZWYyMC00MTE3LTg1YjQtZmFhYTFkMWQxMTRh', False )
+
+escrowed = False
+ackBit = 0
+apexModel = 0
+apexVersion = 0
+billCredit = 0
+billCount = bytearray([0,0,0,0,0,0,0,0])
+laststatus = ''
+
+ser = serial.Serial(
+    port='/dev/ttyUSB0',
+    baudrate=9600,
+    bytesize=serial.SEVENBITS,
+    parity=serial.PARITY_EVEN,
+    stopbits=serial.STOPBITS_ONE
+)
+
+
+
+print "opening port"
+ser.open()
+
+while ser.isOpen():
+    
+    # basic message   0      1      2      3      4      5      6      7
+    #               start,   len,   ack, bills,escrow,resv'd,  end, checksum
+    msg = bytearray([0x02,  0x08,  0x10,  0x7F,  0x10,  0x00,  0x03,  0x00])
+    
+    msg[2] = 0x10 | ackBit
+    if (ackBit == 1):
+        ackBit = 0
+    else:
+        ackBit = 1
+    
+    if (escrowed):
+        msg[4] |= 0x20
+    
+    #calculate checksum of message for Byte 7
+    msg[7] = msg[1] ^ msg[2]
+    msg[7] ^= msg[3]
+    msg[7] ^= msg[4]
+    msg[7] ^= msg[5]
+    
+    #print(">> %s" % binascii.hexlify(msg))
+    ser.write(msg)
+    time.sleep(0.1)
+    
+    out = ''
+    while ser.inWaiting() > 0:
+        out += ser.read(1)
+    if (out == ''): continue
+        
+    #print "<<", binascii.hexlify(out)
+    
+    status = ""
+    if (ord(out[3]) & 1): status += " IDLING "
+    if (ord(out[3]) & 2): status += " ACCEPTING "
+    if (ord(out[3]) & 4):
+        status += " ESCROWED "
+        escrowed = True
+    else:
+        escrowed = False
+    if (ord(out[3]) & 8): status += " STACKING "
+    if (ord(out[3]) & 0x10): status += " STACKED "
+    if (ord(out[3]) & 0x20): status += " RETURNING "
+    if (ord(out[3]) & 0x40): status += " RETURNED "
+    
+    if (ord(out[4]) & 1): status += " CHEATED! "
+    if (ord(out[4]) & 2): status += " REJECTED "
+    if (ord(out[4]) & 4): status += " JAMMED! "
+    if (ord(out[4]) & 8): status += " FULL! "
+    if (ord(out[4]) & 0x10): status += " w/CASSETTE "
+    if (laststatus != status):
+        print 'Acceptor status:',status
+        laststatus = status
+    
+    if (ord(out[5]) & 1): print 'Acceptor powering up / initializing.'
+    if (ord(out[5]) & 2): print 'Acceptor received invalid command.'
+    if (ord(out[5]) & 4): print 'Acceptor has failed!'
+    
+    if (out[7] != apexModel or out[8] != apexVersion):
+        apexModel = out[7]
+        apexVersion = out[8]
+        print "Connected to Acceptor model", binascii.hexlify(apexModel), "FW ver", binascii.hexlify(apexVersion)
+
+    #print status
+    
+    billCredit = ord(out[5]) & 0x38
+    if(billCredit == 0): billCredit = 0
+#settings USD
+#bill 1
+    if(billCredit == 8): billCredit = 1
+#bill 2
+    if(billCredit == 0x10): billCredit = 2
+#bill 3
+    if(billCredit == 0x18): billCredit = 5
+#bill 4
+    if(billCredit == 0x20): billCredit = 10
+#bill 5
+    if(billCredit == 0x28): billCredit = 20
+#bill 6
+    if(billCredit == 0x30): billCredit = 50
+#bill 7
+    if(billCredit == 0x38): billCredit = 100
+
+    if(billCredit != 0):
+        lastCredit = billCredit
+        if(ord(out[3]) & 0x10):
+            info = pubnub.publish({'channel' : 'atm','message' : {'tendered' : billCredit}})
+            print info
+            while "Not Sent" in info:
+                info = pubnub.publish({'channel' : 'atm','message' : {'tendered' : billCredit}})
+                print info
+                if "Not Sent" in info:
+                    print "Failed to send! trying again"
+    time.sleep(0.1)
+    #print binascii.hexlify(billCount)
+    
+    
+print "port closed"
+ser.close()

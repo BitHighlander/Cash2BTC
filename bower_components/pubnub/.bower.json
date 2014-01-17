@@ -1,0 +1,14 @@
+{
+  "name": "pubnub",
+  "homepage": "https://github.com/pubnub/javascript",
+  "_release": "72b9895f66",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "72b9895f6649d85d4f555a9f233a60c4864b25bc"
+  },
+  "_source": "git://github.com/pubnub/javascript.git",
+  "_target": "*",
+  "_originalSource": "pubnub",
+  "_direct": true
+}

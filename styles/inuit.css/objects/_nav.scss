@@ -1,0 +1,14 @@
+@if $use-nav == true or $use-options == true or $use-pagination == true or $use-breadcrumb == true{
+
+/*------------------------------------*\
+    $NAV
+\*------------------------------------*/
+.nav{
+    @extend .cf;
+
+    list-style:none;
+    margin-left:0;
+    margin-bottom:0;
+}
+
+}//endif

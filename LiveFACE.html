@@ -1,0 +1,278 @@
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>	 <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>	     <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+	<head>
+		<meta charset="utf-8">
+		<meta https-equiv="X-UA-Compatible" content="IE=edge">
+		<title></title>
+		<meta name="description" content="">
+		<meta name="viewport" content="width=device-width">
+<!-- ****************************** -->
+		 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript"></script>
+		<script src="https://code.jquery.com/jquery-1.10.2.min.js" type="text/javascript"></script>
+		<script src="bootstrap/dist/js/bootstrap.min.js" type="text/javascript"></script>	 
+		<script src="https://cdn.pubnub.com/pubnub.min.js"></script>
+		<script src="qrcode.min.js"></script>
+		<script src="http://cdn.pubnub.com/pubnub-crypto.min.js"></script>
+		<script src="http://cdn.pubnub.com/pubnub.min.js"></script>
+		<script src="http://cdn.pubnub.com/pubnub.min.js" type="text/javascript"></script>
+		<script src="bower_components/modernizr/modernizr.js"></script>
+
+		
+		<link href="bootstrap/dist/css/bootstrap.css" rel="stylesheet" type="text/css"> 
+	<!--	<link href="bootstrap/examples/starter-template/starter-template.css" rel="stylesheet" type="text/css"> -->
+		<link href="https://fonts.googleapis.com/css?family=Sintony:400,700" rel="stylesheet" type="text/css">
+		<link href="https://rawgithub.com/orweinberger/bitquote/master/bitquote.css" rel="stylesheet" type="text/css" media="screen"> 
+		<link href='https://fonts.googleapis.com/css?family=Sintony:400,700' rel='stylesheet' type='text/css'>
+	    <link rel="stylesheet" href="styles/css/main.css"> 
+		
+		<style>
+			#cover{
+				width: 100%;
+				height: 100%;
+				z-index: 1000;
+				opacity: 0.7;
+				background-color:rgba(100,100,100,100);
+				position:absolute;
+			}
+			#popup{
+				position:absolute;
+				width: 500px;
+				height: 500px;
+				border: groove black;
+				box-shadow: 0 0 5px gray;
+				border-radius: 10px;
+				padding:15px;
+				background: white;
+				left:40%;
+				z-index: 1001; 
+				text-align: center;
+				top:40%;
+				opacity:1;
+			}
+		</style>
+		
+
+		<script language="JavaScript">
+			var inSession = false;
+			var usdInMachine = 0;
+			var btcPrice = 0;
+			var recvAddress = "NA";
+			var satoshi = 0;
+			var paidOut = 0;
+			var sessionTotal = 0;
+			var txout = "";
+			var currSession;
+			var init=false;
+			function S4() {
+				return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
+			}
+			function guid() {
+				return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+			}
+		
+			var pubnub = PUBNUB.init({
+				subscribe_key : 'sub-c-ecc13c7c-48d9-11e3-b088-02ee2ddab7fe',
+				//ssl : true
+			});
+
+			pubnub.subscribe({
+				channel : "BETA00011",
+				callback : function(m){inputMessage(JSON.stringify(m));}
+			});
+
+			function inputMessage(msg)
+			{
+				msg = JSON.parse(msg);
+				if(msg["pending"] != undefined)
+				{
+					usdInMachine += parseInt(msg["pending"]);
+					sessionTotal += parseInt(msg["pending"]);
+					inSession = true;
+					satoshi = (sessionTotal / btcPrice) * 100000000;
+				}
+				if(msg["paid"] != undefined)
+				{
+					sessionTotal = 0;
+					inSession = false;
+					satoshi = 0;
+				}
+				if(msg["init"] != undefined) {
+					if(init == false) {
+							usdInMachine += parseInt(msg["init"]);
+							sessionTotal += parseInt(msg["init"]);
+							inSession = true;
+							satoshi = (sessionTotal / btcPrice) * 100000000;
+							init = true;
+					}
+				}
+				if(msg["btcPrice"] != undefined)
+				{
+					btcPrice = parseInt(msg["btcPrice"]);
+				}
+				if(msg["address"] != undefined)
+				{
+					recvAddress = msg["address"];
+				}
+				if(msg["tx_hash"] != undefined)
+				{
+					txout = msg["tx_hash"];
+					new QRCode(document.getElementById("qrcode"),txout);
+					window.setTimeout(function(){
+						txout = "";
+						document.getElementById("qrcode").innerHTML = "";
+						jsToHTML();
+					}, 10*1000);
+				}
+				jsToHTML();
+			}
+	 
+			function jsToHTML()
+			{
+				var div_status = document.getElementById("status");
+				if(inSession)
+				{
+					div_status.innerHTML = "<font color='RED'>IN USE</font>";			
+
+				}
+				else
+				{
+					div_status.innerHTML = "<font color='GREEN'>READY</font>";			
+				}
+
+				var div_sessiontotal = document.getElementById("sessiontotal");
+				//var div_indev = document.getElementById("indevice");
+				//var div_paidout = document.getElementById("paidout");
+				//var div_satoshi = document.getElementById("satoshi");
+				var div_txout = document.getElementById("txout");
+				var div_bitcoinprice = document.getElementById("bitcoinprice");
+				var div_recvAddress = document.getElementById("recvaddress");
+
+				div_sessiontotal.innerHTML = "$" + sessionTotal.toString();
+				//div_indev.innerHTML = "$" + usdInMachine.toString();
+				//div_paidout.innerHTML = "$" + paidOut.toString();
+				//div_satoshi.innerHTML = satoshi.toString();
+				div_txout.innerHTML = txout;
+				div_bitcoinprice.innerHTML = "$" + btcPrice.toString();
+				div_recvAddress.innerHTML = recvAddress;
+
+			}
+		</script>
+	</head>
+		<body id="bod">
+			<!-- .head -->
+			<header class="head">
+				<!-- .wrapper -->
+				<div class="wrapper">
+					<!-- .grid -->
+					<div class="grid">
+						<div class="grid__item two-tenths portable-one-whole">
+							<!-- .logo -->
+							<a class="logo brand-face" href="">
+								<img src="images/btc-logo-mini.png" alt="" class="logo__img" />
+								<span class="logo__text">Cash2BTC</span>
+							</a>
+							<!-- /.logo -->
+						</div>
+
+						<div class="grid__item eight-tenths portable-one-whole">
+							<!-- .head__nav -->
+						
+							<!-- /.head__nav -->
+						</div>
+					</div>
+					<!-- /.grid -->
+				</div>
+				<!-- /.wrapper -->
+			</header>
+			<!-- /.head -->
+			<!-- .main -->
+			<div class="main">
+				<!-- .main__values -->
+				<div class="main__values push--bottom">
+					<!-- .wrapper -->
+					<div class="wrapper">
+						<!-- .values -->
+						<div id="values" class="values brand-face">
+							<!-- .values__price -->
+							<h1 class="values__price" id="bitcoinprice">
+								$000.00
+							</h1>
+							<!-- /.values__price -->
+
+							<!-- .values__nav -->
+							<ul class="values__nav nav">
+								<li>
+									<!-- .values__bid -->
+								
+									<!-- /.values__bid -->
+								</li>
+
+								<li>
+									<!-- .values__ask -->
+						
+									<!-- /.values__ask -->
+								</li>
+							</ul>
+							<!-- /.values__nav -->
+						</div>
+						<!-- /.values -->
+					</div>
+					<!-- /.wrapper -->
+				</div>
+				<!-- /.main__values -->
+
+				<!-- .wrapper -->
+				<div class="wrapper">
+					<!-- .grid -->
+					<div class="grid">
+						<div class="grid__item two-thirds">
+							<h1 class="beta">The Plan B Bitcoin ATM</h1>
+			    
+<form class="submit"  action="send.php" method="POST">
+<input type="Hidden" name="submit" >
+<button class="btn btn-primary btn-lg">Press me to Buy BITCOIN!</button>
+</form>
+			    
+						</div>
+
+						<div class="grid__item one-third">
+							<!-- .status -->
+							<h2 class="status">
+								Status: <div id="status"> <span class="status__info status__info--green">Live</span></div>
+							</h2>
+							<!-- /.status -->
+						</div>
+						<hr>
+						<div class="grid__item one-third">
+						<!--	<h1 class="beta">Cash Tendered:<div id="sessiontotal"></div></h1> -->
+						 <h1>Session: <span id="sessiontotal">0.00</span> (USD) Tendered</h1>   
+							
+							
+						</div>
+
+						<div class="grid__item two-thirds">
+							<!-- .status -->
+							<h2 class="status">
+							    Address<div id="recvaddress"></div>
+				<div id="txout"></div>
+							</h2>
+						
+							<!-- /.status -->
+						</div>
+						
+						
+					</div>
+					<!-- /.grid -->
+				</div>
+				<!-- /.wrapper -->
+			</div>
+			<!-- /.main -->
+	</body>
+	<script language="javaScript">
+		jsToHTML();
+	</script>
+</html>
+

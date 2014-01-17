@@ -1,0 +1,16 @@
+{
+  "name": "inuit.css",
+  "version": "5.0.0",
+  "dependencies": {},
+  "homepage": "https://github.com/csswizardry/inuit.css",
+  "_release": "5.0.0",
+  "_resolution": {
+    "type": "version",
+    "tag": "v5.0.0",
+    "commit": "b32159495c432a926ec01dda4bc1d2a1b89c485f"
+  },
+  "_source": "git://github.com/csswizardry/inuit.css.git",
+  "_target": "~5.0.0",
+  "_originalSource": "inuit.css",
+  "_direct": true
+}

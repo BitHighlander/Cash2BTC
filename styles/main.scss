@@ -1,0 +1,237 @@
+@import 'compass/css3';
+@import 'inuit.css/inuit';
+@import 'fonts';
+
+body {
+    color:#222;
+}
+
+a {
+    text-decoration:none;
+}
+
+.wrapper {
+    margin: 0 auto;
+    width: 90%;
+
+    @include media-query(desk) {
+        min-width: 980px;
+        max-width: 1200px;
+        width: 80%;
+    }
+}
+
+.head {
+    @include box-shadow(0 1px 6px rgba(#000, .3));
+    @include background-image(linear-gradient(lighten(#222, 5%), #222));
+
+    font-size:14px;
+    padding:$base-spacing-unit 0 ;
+    position:relative;
+    z-index:222;
+
+    a {
+        color:#222;
+
+        @include media-query(desk) {
+            color:#eee;
+
+            &:hover {
+                color:#fff;
+            }
+        }
+    }
+
+    @include media-query(desk) {
+        padding:$half-spacing-unit 0;
+    }
+}
+
+.head__nav {
+    @include border-radius($brand-round);
+
+    background-color:#eee;
+    padding:$half-spacing-unit;
+
+    @include media-query(desk) {
+        background-color:transparent;
+        padding:0;
+    }
+}
+
+.head__nav-left {
+    line-height:1;
+
+    > li {
+        border-bottom:1px solid #bbb;
+
+        > a {
+            display:block;
+            padding:$half-spacing-unit;
+        }
+    }
+
+    @include media-query(desk) {
+        line-height:1.8;
+
+        > li {
+            border-bottom:none;
+            float:left;
+            margin:0 $half-spacing-unit;
+
+            > a {
+                padding:0;
+            }
+
+            &:first-child {
+                margin-left:0;
+            }
+
+            &:last-child {
+                margin-right:0;
+            }
+        }
+    }
+}
+
+.head__nav-right {
+    line-height:1;
+
+    > li {
+        border-bottom:1px solid #bbb;
+
+        > a {
+            display:block;
+            padding:$half-spacing-unit;
+        }
+
+        &:last-child {
+            border-bottom:none;
+        }
+    }
+
+    @include media-query(desk) {
+        line-height:1.8;
+
+        > li {
+            border-bottom:none;
+            float:right;
+            margin:0 $half-spacing-unit;
+
+            > a {
+                display:block;
+                padding:0;
+            }
+
+            &:first-child {
+                margin-left:0;
+            }
+
+            &:last-child {
+                margin-right:0;
+            }
+        }
+    }
+}
+
+.logo {
+    @include inline-block();
+
+    color:#eee !important;
+    font-size:24px;
+    font-weight:bold;
+    line-height:1;
+    margin-bottom:$base-spacing-unit;
+
+    @include media-query(desk) {
+        margin-bottom:0;
+    }
+}
+
+.logo__img,
+.logo__text {
+    @include inline-block(bottom);
+}
+
+.logo__text {
+    vertical-align:middle;
+}
+
+.main {
+
+}
+
+.main__values {
+    @include background-image(
+                              linear-gradient(lighten(#c8d7dc, 6%), #c8d7dc)
+                             );
+
+
+    background-repeat: no-repeat;
+    border-bottom:2px solid lighten(#222, 30%);
+}
+
+.values {
+    text-align:center;
+    padding:$base-spacing-unit 0;
+
+    @include media-query(desk) {
+        @include background-image(
+                                  url("../../images/btc-logo.png")
+                                 );
+
+        background-repeat: no-repeat;
+        background-position: left center;
+        text-align:right;
+    }
+}
+
+.values__price {
+    font-size:80px;
+    margin-bottom:0;
+
+    @include media-query(desk) {
+        font-size:148px;
+    }
+}
+
+.values__nav {
+    margin-bottom:0;
+
+    @include media-query(desk) {
+        > li {
+            @include inline-block(middle);
+
+            margin:0 $half-spacing-unit;
+
+            &:first-child {
+                margin-left:0;
+            }
+
+            &:last-child {
+                margin-right:0;
+            }
+        }
+    }
+}
+
+.values__bid {
+    color:#666;
+    margin-bottom:0;
+}
+
+.values__ask {
+    color:#666;
+    margin-bottom:0;
+}
+
+.status {
+}
+
+.status__info {
+    text-transform:uppercase;
+}
+
+.status__info--green {
+    color:green;
+}
