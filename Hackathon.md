@@ -25,6 +25,8 @@ Channel: BETA00016
 
 connect 
 
+https://cash2btc.com/atm/BETA00016.php
+
 Overview
 -----------
 
