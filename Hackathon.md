@@ -4,10 +4,6 @@ NYC Hackathon
 
 Goals
 
-- bla
-- bla bla
-- bla bla bla
-
 
 
 Shared PubNub Keys for channel
@@ -22,6 +18,12 @@ or just goto
 
 http://www.pubnub.com/console/?sub=sub-c-ecc13c7c-48d9-11e3-b088-02ee2ddab7fe&pub=pub-c-9a952874-0857-4976-8fd6-be2c969dc5bc&sec=sec-c-YjA0OGVmNmEtZWYyMC00MTE3LTg1YjQtZmFhYTFkMWQxMTRh
 
+
+
+Channel: BETA00016
+
+
+connect 
 
 Overview
 -----------
