@@ -10,8 +10,11 @@ Goals
 
 
 
+Shared PubNub Keys for channel
+-----------------------------
 
-
+Subscribe Key	 sub-c-ecc13c7c-48d9-11e3-b088-02ee2ddab7fe
+Publish Key	pub-c-9a952874-0857-4976-8fd6-be2c969dc5bc
 
 
 
