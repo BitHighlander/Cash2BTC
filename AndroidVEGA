@@ -1,0 +1,264 @@
+package com.example.cash2btcvegatest;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import com.hoho.android.usbserial.driver.FtdiSerialDriver;
+import com.hoho.android.usbserial.driver.UsbSerialProber;
+
+
+import android.os.Bundle;
+import android.os.Handler;
+import android.app.Activity;
+import android.content.Context;
+import android.hardware.usb.UsbManager;
+import android.view.Menu;
+import android.widget.TextView;
+
+public class MainActivity extends Activity {
+	
+	FtdiSerialDriver driver;
+	TextView tvLog;
+	TextView tvStatus;
+	private Handler customHandler = new Handler();
+
+	int ackBit;
+	boolean escrowed;
+	byte billInEscrow;
+	byte billInRejection;
+	boolean needInhibit = false;
+	boolean needReset = true;
+	boolean sendAck = false;
+    String status;
+    String lastStatus;
+    byte vegaModel;
+    byte vegaVersion;
+    byte lastCredit;
+    int cashBalance = 0;
+    boolean allowReadVega = false;
+   
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		
+		tvStatus = (TextView)findViewById(R.id.tvStatus);
+		//tvStatus.setEnabled(false);
+
+		tvLog = (TextView)findViewById(R.id.tvLog);
+		tvLog.setEnabled(false);
+		log("Hello, I'm " + android.os.Build.BRAND + " " + android.os.Build.MODEL + " " + android.os.Build.VERSION.RELEASE);
+		
+		log("Starting USB Manager...");
+		UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+		driver = (FtdiSerialDriver) UsbSerialProber.findFirstDevice(manager);
+		if (driver != null) {
+			log("Driver loaded: " + driver.getDevice().getProductId());
+			try {
+				driver.open();
+				driver.setParameters(9600, FtdiSerialDriver.DATABITS_8, FtdiSerialDriver.STOPBITS_1, FtdiSerialDriver.PARITY_EVEN);
+				driver.setReadBufferSize(4096);
+				
+				log("Starting communication thread...");
+				allowReadVega = true;
+				
+				customHandler.postDelayed(checkVega, 10000);
+			} catch (Exception e) {
+				log("Serial Open Error " + e.toString() + " " + e.getMessage());
+			} finally {
+				//driver.close();
+			}
+		} else {
+			log("Driver not loaded.  Check your cable, if problem persists please google 'You just got pwnd'.");
+		}
+
+	}
+
+	public static String bytesToHexString(byte[] bytes){ StringBuilder sb = new StringBuilder(); for(byte b : bytes){ sb.append(String.format("%02x", b&0xff)); } return sb.toString(); } 
+	
+	private Runnable checkVega = new Runnable() {
+		@Override
+		public void run() {
+			ByteArrayOutputStream msg = new ByteArrayOutputStream();
+			int numBytesRead = 0;
+			
+			for(int i=0;i<4;i++) {
+				byte buffer[] = new byte[16];
+				try {
+					numBytesRead = driver.read(buffer, 200);
+				} catch (IOException e) {
+					log(e.getMessage());
+					log("Serial Read Error: " + e.getMessage());
+				}
+				//log(Integer.toString(numBytesRead));
+				if(numBytesRead > 0) msg.write(buffer, 0, numBytesRead);
+			}
+			log("<<" + bytesToHexString(msg.toByteArray()));
+			if(msg.size() > 4) { 
+				//log("<read< " + bytesToHexString(msg.toByteArray()) + " - bytesRead=" + Integer.toString(msg.size()));
+			
+	            byte[] out = msg.toByteArray();
+	            
+	            status = "";
+	            if(out[0] == (byte)0xFC) {
+	            	switch(out[2]) {
+// General statuses
+	            	case (byte)0x11:
+		            		status = "ENABLE(IDLING)";
+		            		break;
+		            	case (byte)0x12:
+		            		status = "ACCEPTING";
+		            		break;
+		            	case (byte)0x13:
+		            		status = "ESCROW";
+		            		escrowed = true;
+		            		billInEscrow = out[3];
+		            		break;
+		            	case (byte)0x14:
+		            		status = "STACKING";
+		            		break;
+		            	case (byte)0x15:
+		            		status = "VEND VALID";
+		            		log("Bill Credit (code=" + String.format("%02X ", billInEscrow) + ")");
+		            		sendAck = true;
+		            		break;
+		            	case (byte)0x16:
+		            		status = "STACKED";
+		            		break;
+		            	case (byte)0x17:
+		            		status = "REJECTING";
+		            		billInRejection = out[3];
+		            		break;
+		            	case (byte)0x18:
+		            		status = "RETURNING";
+		            		break;
+		            	case (byte)0x19:
+		            		status = "HOLDING";
+		            		break;
+		            	case (byte)0x1A:
+		            		status = "DISABLE(INHIBIT)";
+		            		needInhibit = true;
+		            		break;
+		            	case (byte)0x1B:
+		            		status = "INITIALIZE";
+		            		break;
+// Power Up statuses
+		            	case (byte)0x40:
+		            		status = "POWER UP";
+		            		break;
+		            	case (byte)0x41:
+		            		status = "POWER UP WITH BILL IN ACCEPTOR";
+		            		break;
+		            	case (byte)0x42:
+		            		status = "POWER UP WITH BILL IN STACKER";
+		            		break;
+// Error statuses		            		
+		            	case (byte)0x43:
+		            		status = "STACKER FULL";
+		            		break;
+		            	case (byte)0x44:
+		            		status = "STACKER OPEN";
+		            		break;
+		            	case (byte)0x45:
+		            		status = "JAM IN ACCEPTOR";
+		            		break;
+		            	case (byte)0x46:
+		            		status = "JAM IN STACKER";
+		            		break;
+		            	case (byte)0x47:
+		            		status = "PAUSE";
+		            		break;
+		            	case (byte)0x48:
+		            		status = "CHEATED";
+		            		break;
+		            	case (byte)0x49:
+		            		status = "FAILURE";
+		            		break;
+		            	case (byte)0x4A:
+		            		status = "COMMUNICATION ERROR";
+		            		break;
+	            	}
+	            }
+	            if(status != lastStatus) {
+	            	//log("Acceptor Status: " + status);
+	            	tvStatus.setText(status);
+	            	lastStatus = status;
+	            }
+			}
+			
+			if(allowReadVega) customHandler.postDelayed(replyVega, 200);
+			//replyApex.run();
+		}
+		//}
+	};
+	
+	private Runnable replyVega = new Runnable() {
+		@Override
+		public void run() {
+			byte[] msg = {(byte) 0xFC, (byte) 0x05, (byte) 0x11, (byte) 0x27, (byte) 0x56, (byte) 0x00};
+			if(needReset == true) {
+				// command Reset
+				log ("Sending Reset command.");
+				msg[1] = 0x05; // msg Length
+				msg[2] = 0x40; // Reset Command
+				msg[3] = 0x2B; // crc-ccitt
+				msg[4] = 0x15; // crc-ccitt
+				needReset = false;
+			} else if(needInhibit == true) {
+				// command Disable Inhibit Mode
+				log("Disabling Inhibit Mode.");
+				msg[1] = 0x06; // msg Length
+				msg[2] = (byte) 0xC3; // Inhibit Command
+				msg[3] = 0x00; // Inhibit Data (inhibit no bills)
+				msg[4] = 0x04; // crc-ccitt
+				msg[5] = (byte) 0xD6; // crc-ccitt
+				needInhibit = false;
+/*			} else if(escrowed == true) {
+				// command Stack-1
+				log ("Sending Stack-1 command.");
+				msg[1] = 0x05; // msg Length
+				msg[2] = 0x41; // Stack-1 Command
+				msg[3] = (byte)0xA2; // crc-ccitt
+				msg[4] = 0x04; // crc-ccitt
+				escrowed = false;
+*/			} else if(escrowed == true) {
+				// command Stack-2
+				log ("Sending Stack-2 command.");
+				msg[1] = 0x05; // msg Length
+				msg[2] = 0x42; // Stack-1 Command
+				msg[3] = 0x39; // crc-ccitt
+				msg[4] = 0x36; // crc-ccitt
+				escrowed = false;
+			} else if(sendAck == true) {
+				// send Ack (to confirm Bill Credit)
+				msg[1] = 0x05; // msg Length
+				msg[2] = 0x50; // Ack message
+				msg[3] = (byte)0xAA; // crc-ccitt
+				msg[4] = 0x05; // crc-ccitt
+				sendAck = false;
+			}
+
+			log(">>" + bytesToHexString(msg));
+			int bytesWritten = 0;
+			try {
+				bytesWritten = driver.write(msg,200);
+			} catch (Exception e) {
+				log("Serial Write Error: " + e.toString() + "=" + e.getMessage());
+				onDestroy();
+			}
+			
+			customHandler.post(checkVega);
+		}
+	};
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.main, menu);
+		return true;
+	}
+
+	void log(String message) {
+		tvLog.append(message + "\n");
+	}
+
+}
