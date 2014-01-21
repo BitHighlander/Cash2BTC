@@ -26,8 +26,37 @@ Warren from Absorbing Technologies http://www.absorbingtechnologies.com/
 continued development by BitHighlander
 
 
+Server Setup
+===============
 
-Setup
+sudo apt-get install openssh-server
+
+sudo apt-get install tasksel
+
+sudo tasksel
+
+install LAMP
+
+sudo apt-get install phpmyadmin
+
+run phpmyadmin
+
+run SQLtable.sql
+
+sudo apt-get install git
+
+copy dir
+
+start server
+------------
+
+python price.py
+python address.py
+php server.php
+
+
+
+Local Rpi Setup
 ===================
 
 clean Raspbian install
@@ -101,6 +130,8 @@ sudo make install
 sudo nano /etc/xdg/lxsession/LXDE/autostart 
 
 copy content
+
+
 
 
 
