@@ -51,8 +51,11 @@ start server
 ------------
 
 python price.py
+
 python address.py
+
 python bills.py
+
 php server.php
 
 
